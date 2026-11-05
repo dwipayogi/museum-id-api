@@ -10,7 +10,13 @@ import { ConflictError, NotFoundError, UnauthorizedError, ValidationError } from
 import { required } from "../utils/validation.js";
 
 function toProfile(user: User) {
-  return { id: user.id, username: user.username, name: user.name, avatarUrl: user.avatarUrl };
+  return {
+    id: user.id,
+    username: user.username,
+    name: user.name,
+    avatarUrl: user.avatarUrl,
+    role: user.role,
+  };
 }
 
 /** POST /api/auth/register */
@@ -39,7 +45,7 @@ export const register = asyncHandler(async (req, res: Response) => {
     .values({ username, password: passwordHash, name, avatarUrl })
     .returning();
 
-  res.status(201).json({ token: signToken({ userId: user.id, username: user.username }), user: toProfile(user) });
+  res.status(201).json({ token: signToken({ userId: user.id, username: user.username, role: user.role }), user: toProfile(user) });
 });
 
 /** POST /api/auth/login */
@@ -53,7 +59,7 @@ export const login = asyncHandler(async (req, res: Response) => {
     throw new UnauthorizedError("Username atau password salah");
   }
 
-  res.json({ token: signToken({ userId: user.id, username: user.username }), user: toProfile(user) });
+  res.json({ token: signToken({ userId: user.id, username: user.username, role: user.role }), user: toProfile(user) });
 });
 
 /** GET /api/auth/me — cek token */

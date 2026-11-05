@@ -88,16 +88,17 @@ async function seed() {
     console.log("  museums: sudah ada data, dilewati");
   }
 
-  // User (dari ProfileDummy — Novan Edo)
+  // User (dari ProfileDummy — Novan Edo, role admin)
   const userCount = await pool.query("select count(*)::int as n from users");
   if (userCount.rows[0].n === 0) {
-    await pool.query("insert into users (username, password, name, avatar_url) values ($1, $2, $3, $4)", [
+    await pool.query("insert into users (username, password, name, avatar_url, role) values ($1, $2, $3, $4, $5)", [
       "novanedo",
       await bcrypt.hash("password123", 10),
       "Novan Edo",
       seededImage("novanedo", 600, 600),
+      "admin",
     ]);
-    console.log("  users: 1 baris dimasukkan (novanedo / password123)");
+    console.log("  users: 1 baris dimasukkan (novanedo / password123, role admin)");
   } else {
     console.log("  users: sudah ada data, dilewati");
   }

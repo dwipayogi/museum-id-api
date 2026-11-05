@@ -5,6 +5,7 @@ import {
   text,
   boolean,
   timestamp,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
@@ -13,6 +14,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   name: varchar("name", { length: 128 }).notNull(),
   avatarUrl: text("avatar_url").notNull().default(""),
+  role: varchar("role", { length: 16 }).notNull().default("user"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -40,7 +42,31 @@ export const museums = pgTable("museums", {
     .defaultNow(),
 });
 
+export const favorites = pgTable(
+  "favorites",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    itemType: varchar("item_type", { length: 16 }).notNull(), // "comic" | "museum"
+    itemId: uuid("item_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("favorites_user_item_unique").on(
+      table.userId,
+      table.itemType,
+      table.itemId
+    ),
+  ]
+);
+
 export type User = typeof users.$inferSelect;
+export type Favorite = typeof favorites.$inferSelect;
+export type NewFavorite = typeof favorites.$inferInsert;
 export type NewUser = typeof users.$inferInsert;
 export type Comic = typeof comics.$inferSelect;
 export type NewComic = typeof comics.$inferInsert;

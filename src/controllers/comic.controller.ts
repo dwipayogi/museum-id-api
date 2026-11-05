@@ -2,10 +2,10 @@ import { asc, eq } from "drizzle-orm";
 import type { Response } from "express";
 
 import { db } from "../db/index.js";
-import { comics, type NewComic } from "../db/schema.js";
+import { comics, users, type NewComic } from "../db/schema.js";
 import type { AuthedRequest } from "../middleware/auth.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { NotFoundError } from "../utils/httpError.js";
+import { NotFoundError, UnauthorizedError } from "../utils/httpError.js";
 import { assertUuid, optionalString, required } from "../utils/validation.js";
 
 /** GET /api/comics */
@@ -22,12 +22,20 @@ export const getComic = asyncHandler(async (req, res: Response) => {
   res.json({ data: comic });
 });
 
-/** POST /api/comics */
+/** POST /api/comics — semua user yang login; author diambil dari nama user (bukan dari body) */
 export const createComic = asyncHandler(async (req: AuthedRequest, res: Response) => {
   const body = req.body as Record<string, unknown>;
+
+  const [user] = await db
+    .select({ name: users.name })
+    .from(users)
+    .where(eq(users.id, req.auth!.userId))
+    .limit(1);
+  if (!user) throw new UnauthorizedError("User dari token tidak ditemukan");
+
   const payload: NewComic = {
     title: required(body, "title"),
-    author: required(body, "author"),
+    author: user.name,
     imageUrl: required(body, "imageUrl"),
   };
   const [comic] = await db.insert(comics).values(payload).returning();

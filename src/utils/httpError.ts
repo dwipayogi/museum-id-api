@@ -19,6 +19,12 @@ export class UnauthorizedError extends HttpError {
   }
 }
 
+export class ForbiddenError extends HttpError {
+  constructor(message: string) {
+    super(403, message);
+  }
+}
+
 export class NotFoundError extends HttpError {
   constructor(message = "Data tidak ditemukan") {
     super(404, message);
